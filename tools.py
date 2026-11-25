@@ -99,7 +99,7 @@ def _start_browser():
         new_browser = new_playwright.chromium.launch(headless=False)
 
         new_context = new_browser.new_context(
-            viewport={"width": 1000, "height": 650},
+            viewport={"width": 1280, "height": 720},
             device_scale_factor=1,
         )
         new_page = new_context.new_page()
@@ -248,6 +248,18 @@ def _drain_pending_screenshots():
     pending_screenshots.clear()
     return screenshots
 
+def _click(role, name):
+    locator = page.get_by_role(role, name=name)
+    count = locator.count()
+    if count == 0:
+        return f"No element found: {role} named {name}"
+    if count > 1:
+        return (
+            f"Ambiguous target: found {count} matching elements. "
+            "Inspect the page and narrow down the target."
+        )
+    locator.click()
+    return f"Successfully clicked {role}: {name}"
 
 # --------------------------------------------------
 # Browser tools
@@ -297,6 +309,8 @@ def get_page_content() -> str:
     """Extract readable text from the current webpage."""
     return _run_browser_task(_get_page_content)
 
+
+# Mouse tools should be used with a high quality VML model that can correctly underestand the coordinate of the elements in an image
 
 @tool
 def mouse_move(x: int, y: int) -> str:
@@ -356,13 +370,10 @@ def mouse_double_click(x: int, y: int) -> str:
 def mouse_scroll(delta_x: int, delta_y: int) -> str:
     """
     Scroll the page at horizonal or vertical directions.
-    The coordinate origin begins at the top-left corner of the webpage. 
-    On the horizontal axis, positive values are to the right, and negative values are to the left. 
-    On the vertical axis, positive values are downward, and negative values are upward.
     
     Args:
-        delta_x: horizontal scroll.
-        delta_y: vertical scroll.
+        delta_x: horizontal scroll. Use positive value to scroll right and negative value to scorll left.
+        delta_y: vertical scroll. Use positive value to scroll down and negative value to scorll up.
 
     Returns:
         a text that says Scrolled by {delta_x} horizontall and by {delta_y} vertically.
@@ -424,25 +435,8 @@ def click_element(role: str, name: str) -> str:
         - An error message if the click operation fails.
     """
 
-    def _click():
-        locator = page.get_by_role(role, name=name)
-
-        count = locator.count()
-
-        if count == 0:
-            return f"No element found: {role} named {name}"
-
-        if count > 1:
-            return (
-                f"Ambiguous target: found {count} matching elements. "
-                "Inspect the page and narrow down the target."
-            )
-
-        locator.click()
-        return f"Successfully clicked {role}: {name}"
-
     try:
-        return _run_browser_task(_click)
+        return _run_browser_task(_click(role, name))
     except Exception as e:
         return f"Failed to click {role} named '{name}': {str(e)}"
 
