@@ -36,7 +36,7 @@ model = LiteLLMModel(
 os.environ["HTTP_PROXY"]="http://127.0.0.1:1080"
 os.environ["HTTPS_PROXY"]="http://127.0.0.1:1080"
 
-from smolagents import OpenAIServerModel
+# from smolagents import OpenAIServerModel
 # model = OpenAIServerModel(
 #     model_id="qwen/qwen3.8-27b",
 #     api_base="https://api.groq.com/openai/v1",
@@ -47,7 +47,6 @@ from smolagents import OpenAIServerModel
 # )
 
 
-
 # Create the agent
 agent = CodeAgent(
     tools=[
@@ -55,7 +54,8 @@ agent = CodeAgent(
         tools.stop_browser,
         tools.search_web,
         tools.open_page,
-        tools.get_page_content,
+        tools.get_page_text_content,
+        tools.get_page_raw_content,
         tools.click_element,
         # tools.mouse_move,
         # tools.mouse_click,
@@ -63,6 +63,7 @@ agent = CodeAgent(
         tools.mouse_scroll,
         tools.keyboard_type,
         tools.keyboard_press,
+        tools.fill_input,
         tools.take_screenshot,
     ],
     model=model,
@@ -70,7 +71,24 @@ agent = CodeAgent(
     verbosity_level=2,
     instructions=config["INSTRUCTIONS"],
     step_callbacks=[tools.attach_requested_screenshots],
+    executor_kwargs={"timeout_seconds": 120},
 )
 
-task = """Go to the ibm website, clear all the pop ups, then take a screeen shot of the bottom of the page."""
-result = agent.run(task)
+# task = """What is the latest news in the Middle east? explain in a few lines"""
+# result = agent.run(task)
+
+while True:
+    try:
+        task = input("\nYou: ")
+
+        if task.lower() in ["exit", "quit"]:
+            break
+
+        result = agent.run(task)
+        print(f"\nAgent: {result}")
+
+        # Example: reset memory after each conversation
+        # agent.memory.reset()
+
+    except KeyboardInterrupt:
+        break

@@ -104,7 +104,8 @@ def _start_browser():
         )
         new_page = new_context.new_page()
 
-        new_page.set_default_timeout(15000)
+        new_page.set_default_timeout(60000)
+        new_page.set_default_navigation_timeout(60000)
 
     except Exception:
         try:
@@ -146,15 +147,17 @@ def _search_web(query, max_results):
 
 
 def _open_page(url):
-    page.goto(url, wait_until="domcontentloaded")
+    page.goto(url, wait_until="domcontentloaded", timeout=120000)
     _add_visual_cursor()
 
     return f"Title: {page.title()}\nURL: {page.url}"
 
 
+def _get_page_raw_content():
+    return page.content()
+
 def _get_page_content():
     return page.locator("body").inner_text()
-
 
 def _mouse_move(x, y):
     page.mouse.move(x, y)
@@ -249,7 +252,7 @@ def _drain_pending_screenshots():
     return screenshots
 
 def _click(role, name):
-    locator = page.get_by_role(role, name=name)
+    locator = page.get_by_role(role= role, name=name)
     count = locator.count()
     if count == 0:
         return f"No element found: {role} named {name}"
@@ -260,6 +263,24 @@ def _click(role, name):
         )
     locator.click()
     return f"Successfully clicked {role}: {name}"
+
+def _fill_input(selector: str, value: str):
+    locator = page.locator(selector)
+
+    count = locator.count()
+
+    if count == 0:
+        return f"No input element found matching: {selector}"
+
+    if count > 1:
+        return (
+            f"Ambiguous selector: found {count} elements. "
+            "Please provide a more specific selector."
+        )
+
+    locator.fill(value)
+
+    return f"Successfully filled '{selector}' with the provided value."
 
 # --------------------------------------------------
 # Browser tools
@@ -305,10 +326,17 @@ def open_page(url: str) -> str:
 
 
 @tool
-def get_page_content() -> str:
-    """Extract readable text from the current webpage."""
-    return _run_browser_task(_get_page_content)
+def get_page_raw_content() -> str:
+    """
+    get the whole raw HTML page as text.
+    This tool is useful when you need to know more about the HTML elements in a page besides its text information.
+    """
+    return _run_browser_task(_get_page_raw_content)
 
+@tool
+def get_page_text_content() -> str:
+    """Get readable text from the current webpage. Without HTML syntax."""
+    return _run_browser_task(_get_page_content)
 
 # Mouse tools should be used with a high quality VML model that can correctly underestand the coordinate of the elements in an image
 
@@ -376,7 +404,12 @@ def mouse_scroll(delta_x: int, delta_y: int) -> str:
         delta_y: vertical scroll. Use positive value to scroll down and negative value to scorll up.
 
     Returns:
-        a text that says Scrolled by {delta_x} horizontall and by {delta_y} vertically.
+        A string like the below one:
+        
+        Scroll requested: horizontal={x}, vertical={y}
+        Previous scroll position: {before}
+        Current scroll position: {after}
+        Direction: {'down' if after > before else 'up' if after < before else 'unchanged'}
     """
     return _run_browser_task(_mouse_scroll, delta_x, delta_y)
 
@@ -428,18 +461,36 @@ def click_element(role: str, name: str) -> str:
               Examples: "Sign in", "Forgot password?", "Email".
 
     Returns:
-        A string describing the result:
-        - Success message if exactly one matching element is clicked.
-        - Error message if no matching element is found.
-        - Error message if multiple matching elements are found.
-        - An error message if the click operation fails.
+        A string describing the result.
     """
 
     try:
-        return _run_browser_task(_click(role, name))
+        return _run_browser_task(_click, role, name)
     except Exception as e:
         return f"Failed to click {role} named '{name}': {str(e)}"
 
+@tool
+def fill_input(selector: str, value: str) -> str:
+    """
+    Fill an input field with the provided value.
+
+    Args:
+        selector: CSS selector identifying the input element.
+                  Examples:
+                  - input[name="email"]
+                  - input#username
+                  - textarea
+                  - input[placeholder="Search"]
+                  - [contenteditable="true"]
+
+        value: The text to enter into the input field.
+    """
+
+    try:
+        return _run_browser_task(_fill_input, selector, value)
+
+    except Exception as e:
+        return f"Failed to fill input '{selector}': {str(e)}"
 
 # --------------------------------------------------
 # Screenshot observation management
