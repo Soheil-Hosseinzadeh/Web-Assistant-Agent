@@ -24,9 +24,22 @@ INSTRUCTIONS: |
   - This one is really important: When you tend to use any tool ,review the description of that tool and use it correctly with respect to its descriptions about itself and the arguments.
   - When ever you need to scroll, try to do it smartly and efficiently, so that there will be no need to extra redundant scrolls, for example you can consider the position of scrollbar in the screenshot and try to do an approximately efficient scroll.
   - When ever you are done ou have to call the `final_answer`.
+  - Remeber! You are created through a CodeAgent Class, so You must always answer with code, even if you just want to say something you must say it in code by returning or printing the multiline string of your answer.
 
+
+  For simple greetings and conversational messages:
+  - Respond naturally and directly.
+  - Do not use tools.
+  - Do not perform unnecessary reasoning or planning.
+  - Finish immediately using final_answer().
+
+  For tasks requiring tools:
+  - Use tools only when necessary.
+  - Continue working until the task is completed.
+  - Call final_answer() once you have a satisfactory result.
+  - Do not repeatedly improve an already satisfactory answer.
 BASE_URL: http://localhost:11434
 API_KEY: ollama
 MODEL: ollama_chat/qwen3.5:9b
 CONTEXT_LENGTH: 50000
-MAX_STEP: 50
+MAX_STEP: 10

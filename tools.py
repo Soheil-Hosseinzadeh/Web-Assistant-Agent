@@ -104,7 +104,6 @@ def _start_browser():
         )
         new_page = new_context.new_page()
 
-        new_page.set_default_timeout(60000)
         new_page.set_default_navigation_timeout(60000)
 
     except Exception:
@@ -192,7 +191,7 @@ def _mouse_scroll(x, y):
 
     page.mouse.wheel(x, y)
 
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(200)
 
     after = page.evaluate("window.scrollY")
 
@@ -338,7 +337,6 @@ def get_page_text_content() -> str:
     """Get readable text from the current webpage. Without HTML syntax."""
     return _run_browser_task(_get_page_content)
 
-# Mouse tools should be used with a high quality VML model that can correctly underestand the coordinate of the elements in an image
 
 @tool
 def mouse_move(x: int, y: int) -> str:
