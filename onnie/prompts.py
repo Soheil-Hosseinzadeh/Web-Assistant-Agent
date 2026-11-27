@@ -4,8 +4,13 @@
 STOP_TEXT = "User asks to stop right now"
 
 # Used on the first message of every chat to generate a short sidebar title.
-TITLE_PROMPT = (
-    "I want you to summary this user text request as a chat topic in "
+TITLE_PROMPT = """
+I want you to take the user request and create a chat top in at most 6 words or less. The user request is provided in triple backticks: ```{user_request}```
+Don't say anything extra, just output the chat topic.
+"""
+
+(
+    ""
     "5 words or less: {user_request}, just answer the summary, don't say "
     "anything extra"
 )

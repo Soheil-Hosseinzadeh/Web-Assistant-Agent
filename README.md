@@ -1,5 +1,11 @@
 # Onnie — Web Assistant Agent
 
+**GUI**
+![alt text](README_PICS/image.png)
+
+**CLI**
+![alt text](README_PICS/image-1.png)
+
 Onnie is a web-browsing assistant built on [`smolagents`](https://github.com/huggingface/smolagents) (a `CodeAgent`), [LiteLLM](https://github.com/BerriAI/litellm) and [Playwright](https://playwright.dev/python/). You give it a task in plain language; it plans, writes Python code, drives a real Chromium browser and comes back with an answer.
 
 It ships with **two interfaces** that share the same agent core:
@@ -47,8 +53,7 @@ It ships with **two interfaces** that share the same agent core:
 ```text
 onnie/
 ├── main.py                 # Entry point: parses --mode, prepares config, starts GUI or CLI
-├── conf.yml                # Your private configuration (git-ignored, create from the example)
-├── conf.example.yml        # Documented configuration template
+├── conf.yml                # All the configurations.
 ├── requirements.txt        # Pinned dependencies
 ├── README.md
 └── onnie/                  # Application package
@@ -91,29 +96,6 @@ pip install -r requirements.txt
 # 3. Install the Chromium build used by Playwright (once)
 playwright install chromium
 
-# 4. Create your configuration
-cp conf.example.yml conf.yml       # then edit conf.yml
-```
-
-### Configuration (`conf.yml`)
-
-| Key | Required | Default | Description |
-|-----|:--------:|---------|-------------|
-| `MODEL` | ✅ | – | LiteLLM model id (e.g. `ollama_chat/qwen3:14b`) |
-| `BASE_URL` | ✅ | – | API endpoint of your provider |
-| `API_KEY` | ✅ | – | API key (any placeholder for local servers) |
-| `CONTEXT_LENGTH` | ✅ | – | Model context window in tokens |
-| `MAX_STEP` | ✅ | – | Max reasoning/action steps per request |
-| `INSTRUCTIONS` | ✅ | – | Your system instructions for the agent |
-| `TEMPERATURE` | | `0.1` | Sampling temperature |
-| `CONTEXT_THRESHOLD` | | `0.80` | Fraction of the window at which memory is trimmed |
-| `KEEP_RATIO` | | `0.50` | Fraction of the newest agent steps kept when trimming |
-| `EXECUTOR_TIMEOUT` | | `120` | Seconds allowed per code execution |
-| `ENABLE_VISION_TOOLS` | | `false` | Enable coordinate-based mouse tools |
-| `HOST` / `PORT` | | `127.0.0.1` / `8080` | Where the web GUI listens |
-| `PROXY` | | `http://127.0.0.1:1080` | Proxy for model traffic. Existing `HTTP_PROXY`/`HTTPS_PROXY` env vars win. Use `""` to disable |
-
----
 
 ## Using the visual mode
 
@@ -159,19 +141,8 @@ While the agent is working (a spinner with a live token counter is shown) you ca
 
 ---
 
-## How it works
-
-1. **One agent per chat.** `Chat.create()` builds an independent `CodeAgent` with its own memory. When you leave a chat its memory is snapshotted; when you return, only that chat's steps are loaded back into its agent.
-2. **Chat titles.** On the first message the agent is asked for a ≤5-word topic, then its memory is wiped so the real request starts clean.
-3. **Step callback.** After every agent step, a callback records token usage (for the context meter), collects the step's thinking, and trims old history if the input size reaches `CONTEXT_LENGTH × CONTEXT_THRESHOLD`.
-4. **Stopping.** `agent.interrupt()` stops at the next step boundary; a `StopStep` is stored so the model sees *"User asks to stop right now"* as a normal user message.
-5. **Threads.** Blocking agent calls run in a worker thread (GUI: `run.io_bound`, CLI: `threading`), and all Playwright calls are funneled through one dedicated thread.
-
 ## Notes and limitations
 
 - **Temporary chats.** Chats live in process memory only; they disappear when the app restarts.
 - **One shared browser.** Browser state is global in `onnie/tools/browser.py`, so all chats share one Chromium window (agent memories are separate, the browser is not). Chromium opens **visibly** (`headless=False`).
-- **Context meter is an estimate.** It uses the latest request's `input_tokens`, not an exact count of everything in memory.
-- **Local, single-user app.** The agent executes Python it writes and controls a browser on your machine. Keep `HOST` at `127.0.0.1` unless you intentionally want network access, and don't expose it publicly without authentication and per-user isolation.
-- **Screenshots** are saved to `./images/` relative to where you start the app.
-- **Dependencies.** `requirements.txt` pins the project's direct dependencies to the versions from your `pip list`; their sub-dependencies are resolved by pip.
+- **Screenshots** are saved to `images/`.
