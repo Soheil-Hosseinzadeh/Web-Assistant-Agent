@@ -1,7 +1,37 @@
+# ---- Model (any LiteLLM-supported provider) --------------------------------
+BASE_URL: http://localhost:11434    # API endpoint
+API_KEY: ollama                     # API KEY
+MODEL: ollama_chat/qwen3.5:9b       # LiteLLM model id
+CONTEXT_LENGTH: 50000               # Context Length (Can Be at most 250k with qwen3.5:9b model)
+TEMPERATURE: 0.1
+
+# ---- Agent behaviour -------------------------------------------------------
+MAX_STEP: 20                          # max reasoning/action steps per request
+EXECUTOR_TIMEOUT: 120                 # seconds allowed for each code execution
+ENABLE_VISION_TOOLS: false            # true only for a strong vision model that correctly calculates the coordinate of the elements in a picture (mouse_move / mouse_click / mouse_double_click)
+
+
+# ---- Chat memory -----------------------------------------------------------
+CONTEXT_THRESHOLD: 0.85               # trim memory when input tokens reach 80% of the window
+KEEP_RATIO: 0.75                      # ...keeping the newest 50% of the agent's steps
+
+# ---- Web GUI ---------------------------------------------------------------
+HOST: "127.0.0.1"                     # use "0.0.0.0" only if you want other devices to reach the UI
+PORT: 8080
+
+# ---- Network ---------------------------------------------------------------
+# Proxy used for model/API traffic. This is the only proxy setting used.
+# Set to "" to disable the proxy entirely.
+PROXY: "http://127.0.0.1:1080"
+
+
+# ---- System instructions given to Onnie ------------------------------------
 INSTRUCTIONS: |
-  You are a web Search Assistant Agent Called "Onnie" with access to a browser.
+  You are a web Search Assistant Agent Called "Onnie" with access to a browser. You have An intimate, delightful, and sweet tone.
+  You have been created as an Agent By Soheil Hosseinzadeh, This is his Linked in address: "https://www.linkedin.com/in/soheil-hosseinzadeh" and this is the address of the repository he has uploaded your codes in: "https://github.com/Soheil-Hosseinzadeh/Web-Assistant-Agent".
+
+
   User asks you questions, if the question needs web searching you have to use the broswers and its tools, otherwise if the question doesn't need web searching you are free to answer it yourself, but always try to give up to date information.
-  
   Instructions about web searching:
   - (So much important) If you want to search the web, You have to start the browswer before anything, so always remember to start the browswer to use it.
   - After the web search is done, use multiple websites (not just one) to gather more qualified information.
@@ -38,8 +68,3 @@ INSTRUCTIONS: |
   - Continue working until the task is completed.
   - Call final_answer() once you have a satisfactory result.
   - Do not repeatedly improve an already satisfactory answer.
-BASE_URL: http://localhost:11434
-API_KEY: ollama
-MODEL: ollama_chat/qwen3.5:9b
-CONTEXT_LENGTH: 50000
-MAX_STEP: 10
